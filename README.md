@@ -25,7 +25,7 @@ ASIC Repair Pro เป็นระบบจัดการงานซ่อม�
 - Material-UI (MUI) v5
 - Redux Toolkit
 - React Router v6
-- Chart.js
+- Chart.js (Recharts)
 
 ### Infrastructure
 - Docker & Docker Compose
@@ -44,8 +44,8 @@ ASIC Repair Pro เป็นระบบจัดการงานซ่อม�
 
 1. **Clone repository**
 ```bash
-git clone <repository-url>
-cd asic-repair-pro
+git clone https://github.com/ton-apicha/asic-repair-manager-pro.git
+cd asic-repair-manager-pro
 ```
 
 2. **Copy environment file**
@@ -68,8 +68,8 @@ docker-compose up -d --build
 ```
 
 5. **เข้าถึงระบบ**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
+- Frontend: http://localhost/
+- Backend API: http://localhost/api/v1
 - Database: localhost:5432
 - Redis: localhost:6379
 
@@ -122,11 +122,18 @@ npm run build
 - ติดตามสถานะการรับประกัน
 - ระบบแจ้งเตือนการหมดอายุ
 
+## Git Version Control
+
+ระบบนี้ใช้ Git สำหรับการควบคุมเวอร์ชัน ดูคู่มือการใช้งาน:
+- [GIT_WORKFLOW.md](./GIT_WORKFLOW.md) - คู่มือการใช้งาน Git
+- [COMMIT_CONVENTION.md](./COMMIT_CONVENTION.md) - ข้อกำหนดการเขียน commit message
+- [REVERT_GUIDE.md](./REVERT_GUIDE.md) - คู่มือการย้อนกลับ (revert)
+
 ## API Documentation
 
 API Documentation จะพร้อมใช้งานที่:
-- Swagger UI: http://localhost:3001/api-docs
-- OpenAPI Spec: http://localhost:3001/api-docs.json
+- Swagger UI: http://localhost/api/v1/api-docs
+- OpenAPI Spec: http://localhost/api/v1/api-docs.json
 
 ## การทดสอบ
 
@@ -156,10 +163,10 @@ docker-compose up -d
 ### Production
 ```bash
 # Build production images
-docker-compose -f docker-compose.prod.yml build
+docker-compose build
 
 # Deploy
-docker-compose -f docker-compose.prod.yml up -d
+docker-compose up -d
 ```
 
 ## การ Monitor
@@ -175,8 +182,8 @@ docker-compose logs -f frontend
 ```
 
 ### Health Checks
-- Backend Health: http://localhost:3001/health
-- Frontend Health: http://localhost:3000
+- Backend Health: http://localhost/health
+- Frontend Health: http://localhost/
 
 ## การแก้ไขปัญหา
 
@@ -192,7 +199,7 @@ docker-compose logs postgres
 ### Port Conflicts
 ```bash
 # ตรวจสอบ ports ที่ใช้
-netstat -tulpn | grep :3000
+netstat -tulpn | grep :80
 netstat -tulpn | grep :3001
 ```
 
@@ -219,5 +226,6 @@ MIT License
 
 ## ติดต่อ
 
-- Email: support@asic-repair-pro.com
-- Website: https://asic-repair-pro.com
+- GitHub: https://github.com/ton-apicha/asic-repair-manager-pro
+- Repository: https://github.com/ton-apicha/asic-repair-manager-pro
+
