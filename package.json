@@ -1,0 +1,55 @@
+{
+  "name": "asic-repair-pro",
+  "version": "1.0.0",
+  "description": "ASIC Repair Pro - Field Service Management System",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "type-check": "npm run type-check:backend && npm run type-check:frontend",
+    "type-check:backend": "cd backend && npm run build",
+    "type-check:frontend": "cd frontend && npm run build",
+    "prepare": "husky install",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down -v --rmi all",
+    "git:commit": "node scripts/git-commit.js",
+    "git:push": "node scripts/git-push.js",
+    "git:revert": "node scripts/git-revert.js",
+    "git:branch": "node scripts/git-create-branch.js",
+    "git:tag": "node scripts/create-tag.js"
+  },
+  "keywords": [
+    "asic",
+    "repair",
+    "field-service",
+    "management",
+    "bitcoin",
+    "mining"
+  ],
+  "author": "ASIC Repair Pro Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "husky": "^8.0.3"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}

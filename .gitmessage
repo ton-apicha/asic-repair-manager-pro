@@ -1,0 +1,21 @@
+# <type>: <subject>
+
+# <body>
+
+# <footer>
+
+# Types:
+#   feat:     New feature
+#   fix:      Bug fix
+#   refactor: Code refactoring
+#   docs:     Documentation changes
+#   style:    Code style changes (formatting)
+#   test:     Test changes
+#   chore:    Maintenance tasks
+#
+# Examples:
+#   feat: add work order reception system
+#   fix: resolve WO_ID generation sequence bug
+#   refactor: improve customer service structure
+#   docs: update README with setup instructions
+

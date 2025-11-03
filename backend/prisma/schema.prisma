@@ -1,0 +1,372 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      UserRole @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  technician Technician?
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  TECHNICIAN
+  USER
+}
+
+// Customers
+model Customer {
+  id           String  @id @default(cuid())
+  companyName  String
+  contactPerson String?
+  email        String  @unique
+  phone        String?
+  address      String?
+  taxId        String?
+  isActive     Boolean @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  devices     Device[]
+  workOrders  WorkOrder[]
+
+  @@map("customers")
+}
+
+// Devices (ASIC Miners)
+model Device {
+  id                String      @id @default(cuid())
+  customerId        String
+  model             String
+  serialNumber      String      @unique
+  hashrate          Decimal?
+  powerConsumption  Int?
+  purchaseDate      DateTime?
+  warrantyStartDate DateTime?
+  warrantyEndDate   DateTime?
+  status            DeviceStatus @default(ACTIVE)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relations
+  customer    Customer     @relation(fields: [customerId], references: [id])
+  workOrders  WorkOrder[]
+  warranties  Warranty[]
+
+  @@map("devices")
+}
+
+enum DeviceStatus {
+  ACTIVE
+  REPAIR
+  RETIRED
+}
+
+// Technicians
+model Technician {
+  id         String  @id @default(cuid())
+  userId     String  @unique
+  employeeId String  @unique
+  skills     String[]
+  hourlyRate Decimal?
+  isActive   Boolean @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  user        User         @relation(fields: [userId], references: [id])
+  workOrders  WorkOrder[]
+  timeLogs    TimeLog[]
+  schedules   WorkSchedule[]
+
+  @@map("technicians")
+}
+
+// Work Orders
+model WorkOrder {
+  id           String        @id @default(cuid())
+  woId         String        @unique // WO-YYYYMMDD-001
+  customerId   String
+  deviceId     String
+  technicianId String?
+  status       WorkOrderStatus @default(TRIAGE)
+  priority     Priority      @default(MEDIUM)
+  description  String?
+  notes        String?
+  estimatedCost Decimal?
+  actualCost   Decimal?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  completedAt  DateTime?
+  createdBy    String
+  updatedBy    String?
+
+  // Relations
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  device       Device        @relation(fields: [deviceId], references: [id])
+  technician   Technician?   @relation(fields: [technicianId], references: [id])
+  diagnostics  Diagnostic[]
+  partsUsage   PartsUsage[]
+  timeLogs     TimeLog[]
+  schedules    WorkSchedule[]
+  documents    WorkOrderDocument[]
+  warranties   Warranty[]
+
+  @@map("work_orders")
+}
+
+enum WorkOrderStatus {
+  TRIAGE
+  QUOTATION
+  EXECUTION
+  QA
+  CLOSURE
+  WARRANTY
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// Diagnostics
+model Diagnostic {
+  id                  String    @id @default(cuid())
+  workOrderId         String
+  faultType           String
+  faultDescription    String?
+  diagnosisNotes      String?
+  recommendedParts    String[]
+  estimatedRepairTime Int? // minutes
+  createdAt           DateTime  @default(now())
+  createdBy           String
+
+  // Relations
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  @@map("diagnostics")
+}
+
+// Part Categories
+model PartCategory {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  parts Part[]
+
+  @@map("part_categories")
+}
+
+// Parts
+model Part {
+  id              String        @id @default(cuid())
+  categoryId      String
+  partNumber      String
+  serialNumber    String?       @unique
+  model           String?
+  cost            Decimal
+  sellingPrice    Decimal?
+  quantityInStock Int           @default(0)
+  minStockLevel   Int           @default(0)
+  location        String?
+  supplier        String?
+  purchaseDate    DateTime?
+  warrantyPeriod  Int? // days
+  status          PartStatus    @default(AVAILABLE)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  category   PartCategory @relation(fields: [categoryId], references: [id])
+  partsUsage PartsUsage[]
+
+  @@map("parts")
+}
+
+enum PartStatus {
+  AVAILABLE
+  IN_USE
+  DEFECTIVE
+  RETIRED
+}
+
+// Parts Usage
+model PartsUsage {
+  id        String   @id @default(cuid())
+  workOrderId String
+  partId    String
+  quantity  Int      @default(1)
+  unitCost  Decimal
+  totalCost Decimal
+  usedAt    DateTime @default(now())
+  usedBy    String
+
+  // Relations
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+  part      Part      @relation(fields: [partId], references: [id])
+
+  @@map("parts_usage")
+}
+
+// Time Logs
+model TimeLog {
+  id           String   @id @default(cuid())
+  workOrderId  String
+  technicianId String
+  activityType String
+  startTime    DateTime
+  endTime      DateTime?
+  duration     Int? // minutes
+  hourlyRate   Decimal?
+  totalCost    Decimal?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  workOrder  WorkOrder  @relation(fields: [workOrderId], references: [id])
+  technician Technician @relation(fields: [technicianId], references: [id])
+
+  @@map("time_logs")
+}
+
+// Work Schedule
+model WorkSchedule {
+  id           String            @id @default(cuid())
+  workOrderId  String
+  technicianId String
+  scheduledDate DateTime
+  startTime    DateTime
+  endTime      DateTime
+  status       ScheduleStatus    @default(SCHEDULED)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // Relations
+  workOrder  WorkOrder  @relation(fields: [workOrderId], references: [id])
+  technician Technician @relation(fields: [technicianId], references: [id])
+
+  @@map("work_schedule")
+}
+
+enum ScheduleStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// Warranty Types
+model WarrantyType {
+  id           String  @id @default(cuid())
+  name         String  @unique
+  durationDays Int
+  coverageType String // PARTS, LABOR, BOTH
+  description  String?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  warranties Warranty[]
+
+  @@map("warranty_types")
+}
+
+// Warranties
+model Warranty {
+  id             String      @id @default(cuid())
+  workOrderId    String
+  deviceId       String
+  warrantyTypeId String
+  startDate      DateTime
+  endDate        DateTime
+  terms          String?
+  status         WarrantyStatus @default(ACTIVE)
+  createdAt      DateTime    @default(now())
+
+  // Relations
+  workOrder   WorkOrder   @relation(fields: [workOrderId], references: [id])
+  device      Device      @relation(fields: [deviceId], references: [id])
+  warrantyType WarrantyType @relation(fields: [warrantyTypeId], references: [id])
+
+  @@map("warranties")
+}
+
+enum WarrantyStatus {
+  ACTIVE
+  EXPIRED
+  VOID
+}
+
+// Work Order Documents
+model WorkOrderDocument {
+  id           String      @id @default(cuid())
+  workOrderId  String
+  documentType String
+  filePath     String
+  fileName     String
+  fileSize     Int?
+  mimeType     String?
+  uploadedBy   String
+  uploadedAt   DateTime    @default(now())
+
+  // Relations
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  @@map("work_order_documents")
+}
+
+// System Settings
+model SystemSetting {
+  id          String   @id @default(cuid())
+  settingKey  String   @unique
+  settingValue String
+  dataType    String
+  description String?
+  updatedBy   String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+// Audit Logs
+model AuditLog {
+  id         String   @id @default(cuid())
+  tableName  String
+  recordId   String
+  action     String // INSERT, UPDATE, DELETE
+  oldValues  Json?
+  newValues  Json?
+  changedBy  String
+  changedAt  DateTime @default(now())
+  ipAddress  String?
+  userAgent  String?
+
+  @@map("audit_logs")
+}

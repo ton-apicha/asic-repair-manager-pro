@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Auto-push after commit (optional)
+# Uncomment the lines below to enable auto-push
+
+# echo "🚀 Auto-pushing to GitHub..."
+# current_branch=$(git branch --show-current)
+# git push origin "$current_branch" 2>/dev/null || echo "⚠️  Push failed or branch not set up. Please push manually."
+

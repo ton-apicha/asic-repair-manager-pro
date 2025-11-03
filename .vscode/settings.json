@@ -1,0 +1,33 @@
+{
+  "git.autofetch": true,
+  "git.confirmSync": true,
+  "git.enableSmartCommit": true,
+  "git.postCommitCommand": "none",
+  "git.suggestSmartCommit": true,
+  "git.autoRepositoryDetection": true,
+  "git.branchProtection": true,
+  "git.allowForcePush": false,
+  "git.allowNoVerifyCommit": false,
+  "git.confirmForceSync": true,
+  "git.ignoreLimitWarning": true,
+  "git.ignoreWindowsGit27Warning": true,
+  "git.pruneOnFetch": true,
+  "git.showPushSuccessNotification": true,
+  "git.timeline.enabled": true,
+  "git.timeline.showUncommitted": true,
+  "sourceControl.autoReveal": true,
+  "sourceControl.confirmDiscard": true,
+  "sourceControl.confirmSync": true,
+  "files.exclude": {
+    "**/.git": false,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/.git/**": true
+  }
+}
+
