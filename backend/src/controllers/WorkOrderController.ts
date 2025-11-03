@@ -497,13 +497,21 @@ export class WorkOrderController {
       const { technicianId } = req.body;
       const userId = (req as any).user.id;
 
+      // Allow empty string or null to unassign
+      const updateData: any = {
+        updatedBy: userId,
+        updatedAt: new Date(),
+      };
+
+      if (technicianId === '' || technicianId === null || technicianId === undefined) {
+        updateData.technicianId = null;
+      } else {
+        updateData.technicianId = technicianId;
+      }
+
       const workOrder = await this.db.prisma.workOrder.update({
         where: { id },
-        data: {
-          technicianId,
-          updatedBy: userId,
-          updatedAt: new Date(),
-        },
+        data: updateData,
         include: {
           technician: {
             select: {
@@ -520,7 +528,7 @@ export class WorkOrderController {
         },
       });
 
-      logger.info(`Technician assigned to work order: ${workOrder.woId}`);
+      logger.info(`Technician ${updateData.technicianId ? 'assigned' : 'unassigned'} to work order: ${workOrder.woId}`);
 
       res.json({
         success: true,
@@ -738,6 +746,388 @@ export class WorkOrderController {
       res.json({
         success: true,
         data: { performance },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * เพิ่ม parts usage สำหรับใบงาน
+   */
+  public addPartsUsage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { partId, quantity, unitCost } = req.body;
+      const userId = (req as any).user.id;
+
+      // Check if work order exists
+      const workOrder = await this.db.prisma.workOrder.findUnique({
+        where: { id },
+      });
+
+      if (!workOrder) {
+        throw new CustomError('Work order not found', 404);
+      }
+
+      // Check if part exists and has stock
+      const part = await this.db.prisma.part.findUnique({
+        where: { id: partId },
+      });
+
+      if (!part) {
+        throw new CustomError('Part not found', 404);
+      }
+
+      if (part.quantityInStock < quantity) {
+        throw new CustomError(`Insufficient stock. Available: ${part.quantityInStock}, Required: ${quantity}`, 400);
+      }
+
+      // Calculate total cost
+      const totalCost = Number(unitCost) * quantity;
+
+      // Create parts usage
+      const partsUsage = await this.db.prisma.partsUsage.create({
+        data: {
+          workOrderId: id,
+          partId,
+          quantity,
+          unitCost: Number(unitCost),
+          totalCost,
+          usedBy: userId,
+        },
+        include: {
+          part: {
+            select: {
+              id: true,
+              partNumber: true,
+              model: true,
+              cost: true,
+            },
+          },
+        },
+      });
+
+      // Update part stock
+      await this.db.prisma.part.update({
+        where: { id: partId },
+        data: {
+          quantityInStock: {
+            decrement: quantity,
+          },
+        },
+      });
+
+      logger.info(`Parts usage added to work order: ${workOrder.woId}`);
+
+      res.status(201).json({
+        success: true,
+        data: { partsUsage },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * ดึงรายการ parts usage สำหรับใบงาน
+   */
+  public getPartsUsage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      const partsUsage = await this.db.prisma.partsUsage.findMany({
+        where: { workOrderId: id },
+        include: {
+          part: {
+            select: {
+              id: true,
+              partNumber: true,
+              model: true,
+              cost: true,
+            },
+          },
+        },
+        orderBy: { usedAt: 'desc' },
+      });
+
+      res.json({
+        success: true,
+        data: { partsUsage },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * ลบ parts usage
+   */
+  public deletePartsUsage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id, partUsageId } = req.params;
+
+      // Get parts usage to restore stock
+      const partsUsage = await this.db.prisma.partsUsage.findUnique({
+        where: { id: partUsageId },
+        include: {
+          part: true,
+        },
+      });
+
+      if (!partsUsage) {
+        throw new CustomError('Parts usage not found', 404);
+      }
+
+      if (partsUsage.workOrderId !== id) {
+        throw new CustomError('Parts usage does not belong to this work order', 400);
+      }
+
+      // Delete parts usage
+      await this.db.prisma.partsUsage.delete({
+        where: { id: partUsageId },
+      });
+
+      // Restore stock
+      await this.db.prisma.part.update({
+        where: { id: partsUsage.partId },
+        data: {
+          quantityInStock: {
+            increment: partsUsage.quantity,
+          },
+        },
+      });
+
+      logger.info(`Parts usage deleted: ${partUsageId}`);
+
+      res.json({
+        success: true,
+        message: 'Parts usage deleted successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * เพิ่ม time log สำหรับใบงาน
+   */
+  public addTimeLog = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { activityType, startTime, endTime, hourlyRate, notes } = req.body;
+      const userId = (req as any).user.id;
+
+      // Check if work order exists
+      const workOrder = await this.db.prisma.workOrder.findUnique({
+        where: { id },
+        include: {
+          technician: {
+            select: {
+              id: true,
+              hourlyRate: true,
+            },
+          },
+        },
+      });
+
+      if (!workOrder) {
+        throw new CustomError('Work order not found', 404);
+      }
+
+      // Get technician ID from user or work order
+      const technician = await this.db.prisma.technician.findUnique({
+        where: { userId },
+      });
+
+      if (!technician) {
+        throw new CustomError('User is not a technician', 400);
+      }
+
+      // Calculate duration
+      const start = new Date(startTime);
+      const end = endTime ? new Date(endTime) : new Date();
+      const duration = Math.round((end.getTime() - start.getTime()) / (1000 * 60)); // minutes
+
+      // Calculate total cost
+      const rate = hourlyRate || Number(workOrder.technician?.hourlyRate) || 0;
+      const totalCost = (duration / 60) * rate;
+
+      // Create time log
+      const timeLog = await this.db.prisma.timeLog.create({
+        data: {
+          workOrderId: id,
+          technicianId: technician.id,
+          activityType,
+          startTime: start,
+          endTime: endTime ? end : null,
+          duration,
+          hourlyRate: rate,
+          totalCost,
+          notes,
+        },
+        include: {
+          technician: {
+            select: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      logger.info(`Time log added to work order: ${workOrder.woId}`);
+
+      res.status(201).json({
+        success: true,
+        data: { timeLog },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * ดึงรายการ time logs สำหรับใบงาน
+   */
+  public getTimeLogs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      const timeLogs = await this.db.prisma.timeLog.findMany({
+        where: { workOrderId: id },
+        include: {
+          technician: {
+            select: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { startTime: 'desc' },
+      });
+
+      res.json({
+        success: true,
+        data: { timeLogs },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * อัปเดต time log
+   */
+  public updateTimeLog = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id, logId } = req.params;
+      const { endTime, notes } = req.body;
+
+      // Get time log
+      const timeLog = await this.db.prisma.timeLog.findUnique({
+        where: { id: logId },
+        include: {
+          technician: {
+            select: {
+              hourlyRate: true,
+            },
+          },
+        },
+      });
+
+      if (!timeLog) {
+        throw new CustomError('Time log not found', 404);
+      }
+
+      if (timeLog.workOrderId !== id) {
+        throw new CustomError('Time log does not belong to this work order', 400);
+      }
+
+      // Calculate duration if endTime is provided
+      let duration = timeLog.duration;
+      let totalCost = timeLog.totalCost;
+      
+      if (endTime) {
+        const start = timeLog.startTime;
+        const end = new Date(endTime);
+        duration = Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+        const rate = Number(timeLog.hourlyRate) || Number(timeLog.technician?.hourlyRate) || 0;
+        totalCost = (duration / 60) * rate;
+      }
+
+      // Update time log
+      const updatedTimeLog = await this.db.prisma.timeLog.update({
+        where: { id: logId },
+        data: {
+          endTime: endTime ? new Date(endTime) : timeLog.endTime,
+          duration,
+          totalCost,
+          notes: notes !== undefined ? notes : timeLog.notes,
+        },
+        include: {
+          technician: {
+            select: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      logger.info(`Time log updated: ${logId}`);
+
+      res.json({
+        success: true,
+        data: { timeLog: updatedTimeLog },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * ลบ time log
+   */
+  public deleteTimeLog = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id, logId } = req.params;
+
+      // Get time log
+      const timeLog = await this.db.prisma.timeLog.findUnique({
+        where: { id: logId },
+      });
+
+      if (!timeLog) {
+        throw new CustomError('Time log not found', 404);
+      }
+
+      if (timeLog.workOrderId !== id) {
+        throw new CustomError('Time log does not belong to this work order', 400);
+      }
+
+      // Delete time log
+      await this.db.prisma.timeLog.delete({
+        where: { id: logId },
+      });
+
+      logger.info(`Time log deleted: ${logId}`);
+
+      res.json({
+        success: true,
+        message: 'Time log deleted successfully',
       });
     } catch (error) {
       next(error);

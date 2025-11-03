@@ -1,10 +1,14 @@
 import { Router } from 'express';
 import { WorkOrderController } from '../controllers/WorkOrderController';
 import { validateRequest } from '../middleware/validateRequest';
+import Joi from 'joi';
 import { 
   createWorkOrderSchema, 
   updateWorkOrderSchema,
-  createDiagnosticSchema 
+  createDiagnosticSchema,
+  createPartsUsageSchema,
+  createTimeLogSchema,
+  updateTimeLogSchema,
 } from '../utils/validationSchemas';
 
 const router = Router();
@@ -35,7 +39,10 @@ router.get('/:id/diagnostics', workOrderController.getDiagnostics);
 router.post('/:id/status', workOrderController.updateStatus);
 
 // POST /api/v1/work-orders/:id/assign
-router.post('/:id/assign', workOrderController.assignTechnician);
+router.post('/:id/assign', validateRequest(Joi.object({
+  technicianId: Joi.string().allow('', null).optional(),
+  notes: Joi.string().max(1000).optional(),
+})), workOrderController.assignTechnician);
 
 // GET /api/v1/work-orders/:id/timeline
 router.get('/:id/timeline', workOrderController.getTimeline);
@@ -51,5 +58,28 @@ router.get('/stats/summary', workOrderController.getStatsSummary);
 
 // GET /api/v1/work-orders/stats/technician-performance
 router.get('/stats/technician-performance', workOrderController.getTechnicianPerformance);
+
+// Parts Usage routes
+// POST /api/v1/work-orders/:id/parts
+router.post('/:id/parts', validateRequest(createPartsUsageSchema), workOrderController.addPartsUsage);
+
+// GET /api/v1/work-orders/:id/parts
+router.get('/:id/parts', workOrderController.getPartsUsage);
+
+// DELETE /api/v1/work-orders/:id/parts/:partUsageId
+router.delete('/:id/parts/:partUsageId', workOrderController.deletePartsUsage);
+
+// Time Logs routes
+// POST /api/v1/work-orders/:id/time-logs
+router.post('/:id/time-logs', validateRequest(createTimeLogSchema), workOrderController.addTimeLog);
+
+// GET /api/v1/work-orders/:id/time-logs
+router.get('/:id/time-logs', workOrderController.getTimeLogs);
+
+// PUT /api/v1/work-orders/:id/time-logs/:logId
+router.put('/:id/time-logs/:logId', validateRequest(updateTimeLogSchema), workOrderController.updateTimeLog);
+
+// DELETE /api/v1/work-orders/:id/time-logs/:logId
+router.delete('/:id/time-logs/:logId', workOrderController.deleteTimeLog);
 
 export default router;

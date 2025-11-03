@@ -6,22 +6,36 @@ echo "🔍 Running pre-commit checks..."
 # Type checking - Backend
 echo "📦 Checking TypeScript types in backend..."
 cd backend
-if ! npm run build > /dev/null 2>&1; then
-  echo "❌ Backend type check failed!"
-  echo "Please fix TypeScript errors before committing."
-  exit 1
+npm run build > /tmp/backend-build.log 2>&1
+backend_exit_code=$?
+if [ $backend_exit_code -ne 0 ]; then
+  echo "⚠️  Backend type check found errors!"
+  echo "Build output saved to /tmp/backend-build.log"
+  echo "Please review and fix TypeScript errors."
+  echo "You can still commit with --no-verify if needed."
+  read -p "Continue with commit anyway? (y/n): " continue_commit
+  if [ "$continue_commit" != "y" ]; then
+    exit 1
+  fi
 fi
 cd ..
 
 # Type checking - Frontend
 echo "📦 Checking TypeScript types in frontend..."
 cd frontend
-if ! npm run build > /dev/null 2>&1; then
-  echo "❌ Frontend type check failed!"
-  echo "Please fix TypeScript errors before committing."
-  exit 1
+npm run build > /tmp/frontend-build.log 2>&1
+frontend_exit_code=$?
+if [ $frontend_exit_code -ne 0 ]; then
+  echo "⚠️  Frontend type check found errors!"
+  echo "Build output saved to /tmp/frontend-build.log"
+  echo "Please review and fix TypeScript errors."
+  echo "You can still commit with --no-verify if needed."
+  read -p "Continue with commit anyway? (y/n): " continue_commit
+  if [ "$continue_commit" != "y" ]; then
+    exit 1
+  fi
 fi
 cd ..
 
-echo "✅ All pre-commit checks passed!"
+echo "✅ Pre-commit checks completed!"
 

@@ -81,6 +81,11 @@ export class WorkOrderService {
     return response.data;
   }
 
+  static async deletePartsUsage(workOrderId: string, partUsageId: string): Promise<ApiResponse<{ message: string }>> {
+    const response = await apiClient.delete(`/work-orders/${workOrderId}/parts/${partUsageId}`);
+    return response.data;
+  }
+
   // Time Logs
   static async addTimeLog(workOrderId: string, data: TimeLogCreate): Promise<ApiResponse<{ timeLog: TimeLog }>> {
     const response = await apiClient.post(`/work-orders/${workOrderId}/time-logs`, data);
@@ -89,6 +94,16 @@ export class WorkOrderService {
 
   static async getTimeLogs(workOrderId: string): Promise<ApiResponse<{ timeLogs: TimeLog[] }>> {
     const response = await apiClient.get(`/work-orders/${workOrderId}/time-logs`);
+    return response.data;
+  }
+
+  static async updateTimeLog(workOrderId: string, logId: string, data: Partial<TimeLogCreate>): Promise<ApiResponse<{ timeLog: TimeLog }>> {
+    const response = await apiClient.put(`/work-orders/${workOrderId}/time-logs/${logId}`, data);
+    return response.data;
+  }
+
+  static async deleteTimeLog(workOrderId: string, logId: string): Promise<ApiResponse<{ message: string }>> {
+    const response = await apiClient.delete(`/work-orders/${workOrderId}/time-logs/${logId}`);
     return response.data;
   }
 

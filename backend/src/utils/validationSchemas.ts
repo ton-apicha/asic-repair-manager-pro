@@ -206,10 +206,10 @@ export const createWarrantyTypeSchema = Joi.object({
 
 // Time Log validation schemas
 export const createTimeLogSchema = Joi.object({
-  workOrderId: Joi.string().required(),
   activityType: Joi.string().min(2).max(50).required(),
   startTime: Joi.date().required(),
   endTime: Joi.date().optional(),
+  hourlyRate: Joi.number().positive().optional(),
   notes: Joi.string().max(1000).optional(),
 });
 
@@ -220,7 +220,6 @@ export const updateTimeLogSchema = Joi.object({
 
 // Parts Usage validation schemas
 export const createPartsUsageSchema = Joi.object({
-  workOrderId: Joi.string().required(),
   partId: Joi.string().required(),
   quantity: Joi.number().integer().positive().required(),
   unitCost: Joi.number().positive().required(),

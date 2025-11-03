@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -23,6 +24,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { WorkOrderStatus, Priority } from '../types/common';
 
 export const WorkOrdersPage: React.FC = () => {
+  const navigate = useNavigate();
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -53,8 +55,8 @@ export const WorkOrdersPage: React.FC = () => {
   };
 
   const handleRowClick = (params: GridRowParams) => {
-    // TODO: Navigate to work order detail page
-    console.log('Work Order clicked:', params.row);
+    // Navigate to work order detail page
+    navigate(`/work-orders/${params.row.id}`);
   };
 
   const getStatusLabel = (status: string): string => {

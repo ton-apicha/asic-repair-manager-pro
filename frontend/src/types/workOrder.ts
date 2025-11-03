@@ -103,7 +103,6 @@ export interface PartsUsageCreate {
   partId: string;
   quantity: number;
   unitCost: number;
-  totalCost: number;
 }
 
 // Time Log Types
