@@ -15,7 +15,8 @@ import {
   Snackbar,
 } from '@mui/material';
 import { Save as SaveIcon, Add as AddIcon } from '@mui/icons-material';
-import { WorkOrderCreate, Priority } from '../../types/workOrder';
+import { WorkOrderCreate } from '../../types/workOrder';
+import { Priority } from '../../types/common';
 import { Customer } from '../../types/customer';
 import { Device } from '../../types/device';
 import { WorkOrderService } from '../../services/workOrderService';
@@ -23,7 +24,6 @@ import { CustomerService } from '../../services/customerService';
 import { DeviceService } from '../../services/deviceService';
 import { CustomerQuickAdd } from '../customers/CustomerQuickAdd';
 import { DeviceQuickAdd } from '../devices/DeviceQuickAdd';
-import { LoadingSpinner } from '../LoadingSpinner';
 
 interface WorkOrderCreateFormProps {
   onSuccess?: () => void;
@@ -38,7 +38,7 @@ export const WorkOrderCreateForm: React.FC<WorkOrderCreateFormProps> = ({
     customerId: '',
     deviceId: '',
     description: '',
-    priority: 'MEDIUM',
+    priority: Priority.MEDIUM,
   });
 
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -206,7 +206,7 @@ export const WorkOrderCreateForm: React.FC<WorkOrderCreateFormProps> = ({
           customerId: '',
           deviceId: '',
           description: '',
-          priority: 'MEDIUM',
+          priority: Priority.MEDIUM,
         });
         setSelectedCustomer(null);
         setSelectedDevice(null);

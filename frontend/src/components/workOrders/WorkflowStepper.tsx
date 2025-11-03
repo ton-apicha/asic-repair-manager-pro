@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Box,
   Stepper,
   Step,
   StepLabel,
@@ -49,7 +48,7 @@ export const WorkflowStepper: React.FC<WorkflowStepperProps> = ({
         Workflow Stages
       </Typography>
       <Stepper activeStep={currentIndex} orientation="vertical">
-        {WORKFLOW_STAGES.map((status, index) => {
+        {WORKFLOW_STAGES.map((status) => {
           const isCompleted = isCompletedStage(status, currentStatus);
           const isCurrent = isCurrentStage(status, currentStatus);
           const isFuture = isFutureStage(status, currentStatus);

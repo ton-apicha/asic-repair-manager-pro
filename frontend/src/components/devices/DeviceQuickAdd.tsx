@@ -14,7 +14,6 @@ import { Device, DeviceQuickCreate } from '../../types/device';
 import { Customer } from '../../types/customer';
 import { DeviceService } from '../../services/deviceService';
 import { CustomerService } from '../../services/customerService';
-import { LoadingSpinner } from '../LoadingSpinner';
 
 interface DeviceQuickAddProps {
   customerId?: string; // Pre-select customer if provided

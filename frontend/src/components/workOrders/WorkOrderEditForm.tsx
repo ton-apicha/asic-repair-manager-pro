@@ -11,12 +11,9 @@ import {
   Select,
   MenuItem,
   Alert,
-  Box,
-  Typography,
   Grid,
 } from '@mui/material';
 import { WorkOrder, WorkOrderUpdate } from '../../types/workOrder';
-import { Priority } from '../../types/common';
 import { WorkOrderService } from '../../services/workOrderService';
 import { useAuth } from '../../contexts/AuthContext';
 

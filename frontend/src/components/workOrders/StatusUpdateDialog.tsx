@@ -19,7 +19,6 @@ import {
   STAGE_DESCRIPTIONS,
   checkPrerequisites,
   getNextPossibleStatuses,
-  canTransitionTo,
 } from '../../utils/workflowUtils';
 import { WorkOrder } from '../../types/workOrder';
 

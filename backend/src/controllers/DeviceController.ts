@@ -134,7 +134,7 @@ export class DeviceController {
           model,
           serialNumber: serialNumber || null,
           purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
-          warrantyExpiry: warrantyExpiry ? new Date(warrantyExpiry) : null,
+          warrantyEndDate: warrantyExpiry ? new Date(warrantyExpiry) : null,
           status: 'ACTIVE',  // Auto-set status to ACTIVE
         },
       });

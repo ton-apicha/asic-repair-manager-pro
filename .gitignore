@@ -117,6 +117,11 @@ coverage/
 .jest/
 .jest-cache/
 
+# E2E Test results
+e2e/test-results/
+e2e/playwright-report/
+e2e/playwright/.cache/
+
 # Misc
 *.pid
 *.seed

@@ -7,8 +7,6 @@ import {
   Grid,
   Chip,
   Button,
-  Card,
-  CardContent,
   Divider,
   IconButton,
   Snackbar,
@@ -17,12 +15,11 @@ import {
 import {
   ArrowBack as ArrowBackIcon,
   Edit as EditIcon,
-  PlayArrow as PlayArrowIcon,
 } from '@mui/icons-material';
 import { useWorkOrder } from '../hooks/useWorkOrder';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ErrorDisplay } from '../components/common/ErrorDisplay';
-import { WorkOrderStatus, Priority } from '../types/common';
+import { WorkOrderStatus } from '../types/common';
 import { WorkflowStepper } from '../components/workOrders/WorkflowStepper';
 import { StatusUpdateDialog } from '../components/workOrders/StatusUpdateDialog';
 import { WorkOrderEditForm } from '../components/workOrders/WorkOrderEditForm';
@@ -38,7 +35,7 @@ import { STAGE_LABELS } from '../utils/workflowUtils';
 export const WorkOrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { workOrder, isLoading, error, refetch, clearError } = useWorkOrder({
+  const { workOrder, isLoading, error, refetch } = useWorkOrder({
     id: id || '',
     enabled: !!id,
   });

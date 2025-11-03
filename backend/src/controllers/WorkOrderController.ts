@@ -11,6 +11,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { Prisma } from '@prisma/client';
 import { DatabaseService } from '../services/DatabaseService';
 import { NotificationService } from '../services/NotificationService';
 import { CustomError } from '../middleware/errorHandler';
@@ -733,14 +734,14 @@ export class WorkOrderController {
         },
       });
 
-      const performance = technicianPerformance.map(tech => ({
+      const performance = technicianPerformance.map((tech: any) => ({
         id: tech.id,
         employeeId: tech.employeeId,
         name: `${tech.user.firstName} ${tech.user.lastName}`,
         totalWorkOrders: tech.workOrders.length,
-        completedWorkOrders: tech.workOrders.filter(wo => wo.status === 'CLOSURE').length,
-        totalHours: tech.timeLogs.reduce((sum, log) => sum + (log.duration || 0), 0) / 60,
-        totalCost: tech.timeLogs.reduce((sum, log) => sum + Number(log.totalCost || 0), 0),
+        completedWorkOrders: tech.workOrders.filter((wo: any) => wo.status === 'CLOSURE').length,
+        totalHours: tech.timeLogs.reduce((sum: number, log: any) => sum + (log.duration || 0), 0) / 60,
+        totalCost: tech.timeLogs.reduce((sum: number, log: any) => sum + Number(log.totalCost || 0), 0),
       }));
 
       res.json({
@@ -1061,7 +1062,7 @@ export class WorkOrderController {
         const end = new Date(endTime);
         duration = Math.round((end.getTime() - start.getTime()) / (1000 * 60));
         const rate = Number(timeLog.hourlyRate) || Number(timeLog.technician?.hourlyRate) || 0;
-        totalCost = (duration / 60) * rate;
+        totalCost = new Prisma.Decimal((duration / 60) * rate);
       }
 
       // Update time log

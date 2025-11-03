@@ -38,13 +38,12 @@ export const WorkOrdersPage: React.FC = () => {
     isLoading,
     error,
     refetch,
-    clearError,
   } = useWorkOrders({
     page,
     limit,
     search: search || undefined,
-    status: statusFilter || undefined,
-    priority: priorityFilter || undefined,
+    status: statusFilter ? (statusFilter as WorkOrderStatus) : undefined,
+    priority: priorityFilter ? (priorityFilter as Priority) : undefined,
     sortBy: 'createdAt',
     sortOrder: 'desc',
   });
@@ -269,21 +268,20 @@ export const WorkOrdersPage: React.FC = () => {
           <DataGrid
             rows={workOrders}
             columns={columns}
-            page={page - 1}
-            pageSize={limit}
-            rowsPerPageOptions={[10, 20, 50]}
-            onPageChange={(newPage) => setPage(newPage + 1)}
+            paginationModel={{ page: page - 1, pageSize: limit }}
+            rowCount={pagination?.total || 0}
+            paginationMode="server"
+            onPaginationModelChange={(model: { page: number; pageSize: number }) => setPage(model.page + 1)}
+            loading={isLoading}
+            pageSizeOptions={[10, 20, 50]}
+            disableRowSelectionOnClick
             onRowClick={handleRowClick}
-            rowHeight={60}
-            disableSelectionOnClick
             sx={{
               '& .MuiDataGrid-row:hover': {
                 cursor: 'pointer',
                 backgroundColor: 'action.hover',
               },
             }}
-            paginationMode="server"
-            rowCount={pagination?.total || 0}
             disableColumnMenu
           />
         )}

@@ -18,14 +18,9 @@ import {
   Chip,
   Divider,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Delete as DeleteIcon,
   Edit as EditIcon,
 } from '@mui/icons-material';
 import { Diagnostic, DiagnosticCreate } from '../../types/workOrder';

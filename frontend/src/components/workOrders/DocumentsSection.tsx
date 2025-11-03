@@ -121,7 +121,7 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
     }
   };
 
-  const handleDelete = async (documentId: string) => {
+  const handleDelete = async (_documentId: string) => {
     if (!window.confirm('ยืนยันการลบเอกสารนี้?')) {
       return;
     }

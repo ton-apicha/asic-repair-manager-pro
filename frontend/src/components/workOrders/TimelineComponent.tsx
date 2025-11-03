@@ -13,12 +13,10 @@ import {
 import {
   CheckCircle as CheckCircleIcon,
   RadioButtonUnchecked as RadioButtonUncheckedIcon,
-  Build as BuildIcon,
   Assessment as AssessmentIcon,
   AccessTime as AccessTimeIcon,
   AddCircle as AddCircleIcon,
 } from '@mui/icons-material';
-import { WorkOrderTimeline } from '../../types/workOrder';
 import { WorkOrderService } from '../../services/workOrderService';
 import { STAGE_LABELS } from '../../utils/workflowUtils';
 
