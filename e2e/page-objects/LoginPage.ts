@@ -15,7 +15,7 @@ export class LoginPage {
   constructor(page: Page) {
     this.page = page;
     this.emailInput = page.getByLabel(/email/i).or(page.locator('input[name="email"]'));
-    this.passwordInput = page.getByLabel(/password/i).or(page.locator('input[name="password"]'));
+    this.passwordInput = page.locator('input[name="password"]').first(); // Use first() to avoid strict mode violation
     this.loginButton = page.getByRole('button', { name: /sign in|login|เข้าสู่ระบบ/i });
     this.errorAlert = page.locator('[role="alert"]').filter({ hasText: /error|failed/i });
   }
@@ -23,8 +23,9 @@ export class LoginPage {
   /**
    * Navigate to login page
    */
-  async goto(): Promise<void> {
-    await this.page.goto('/login');
+  async goto(baseURL?: string): Promise<void> {
+    const url = baseURL || 'http://localhost';
+    await this.page.goto(`${url}/login`);
     await this.page.waitForLoadState('networkidle');
   }
 
@@ -34,8 +35,20 @@ export class LoginPage {
   async login(email: string, password: string): Promise<void> {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
-    await this.loginButton.click();
-    // Wait for navigation or error
+    
+    // Wait for button to be enabled and click
+    await this.loginButton.waitFor({ state: 'visible' });
+    
+    // Click and wait for either success or error response
+    const [response] = await Promise.all([
+      this.page.waitForResponse(
+        response => response.url().includes('/auth/login'),
+        { timeout: 10000 }
+      ).catch(() => null),
+      this.loginButton.click(),
+    ]);
+    
+    // Wait a bit for UI to update
     await this.page.waitForTimeout(1000);
   }
 
@@ -44,8 +57,26 @@ export class LoginPage {
    */
   async hasError(): Promise<boolean> {
     try {
-      await this.errorAlert.waitFor({ timeout: 2000 });
-      return true;
+      // Try multiple selectors for error messages
+      const errorSelectors = [
+        '[role="alert"]',
+        '.MuiAlert-root',
+        '.MuiSnackbar-root',
+        '[class*="error"]',
+        '[class*="Error"]',
+      ];
+      
+      for (const selector of errorSelectors) {
+        try {
+          const errorElement = this.page.locator(selector).filter({ hasText: /error|failed|invalid|credentials/i });
+          await errorElement.waitFor({ timeout: 3000, state: 'visible' });
+          return true;
+        } catch {
+          // Continue to next selector
+        }
+      }
+      
+      return false;
     } catch {
       return false;
     }

@@ -45,11 +45,12 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'docker-compose ps | findstr "Up" || echo "Docker containers must be running"',
-    url: 'http://localhost',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  // webServer disabled - using existing Docker containers
+  // webServer: {
+  //   command: 'docker-compose ps | findstr "Up" || echo "Docker containers must be running"',
+  //   url: 'http://localhost',
+  //   reuseExistingServer: !process.env.CI,
+  //   timeout: 120000,
+  // },
 });
 

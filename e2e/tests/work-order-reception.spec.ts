@@ -29,12 +29,12 @@ test.describe('Work Order Reception System', () => {
     apiClient.setAccessToken(adminToken);
   });
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, baseURL }) => {
     // Login before each test
     const loginPage = new LoginPage(page);
-    await loginPage.goto();
+    await loginPage.goto(baseURL);
     await loginPage.login(testData.adminUser.email, 'TestAdmin123!');
-    await page.waitForURL('/dashboard');
+    await page.waitForURL(/\/dashboard/, { timeout: 15000 });
   });
 
   test.afterAll(async () => {
@@ -42,20 +42,23 @@ test.describe('Work Order Reception System', () => {
     await cleanupTestData(testData);
   });
 
-  test('should display work orders list page', async ({ page }) => {
+  test('should display work orders list page', async ({ page, baseURL }) => {
     const workOrdersPage = new WorkOrdersPage(page);
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
 
+    // Wait for page to load
+    await page.waitForLoadState('networkidle');
+    
     // Check if page elements are visible
-    await expect(workOrdersPage.createButton).toBeVisible();
-    await expect(workOrdersPage.dataGrid).toBeVisible();
+    await expect(workOrdersPage.createButton).toBeVisible({ timeout: 10000 });
+    await expect(workOrdersPage.dataGrid).toBeVisible({ timeout: 10000 });
   });
 
   test('should open create work order dialog', async ({ page }) => {
     const workOrdersPage = new WorkOrdersPage(page);
     const createDialog = new WorkOrderCreateDialog(page);
 
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
     await workOrdersPage.clickCreate();
 
     // Check if dialog is visible
@@ -69,7 +72,7 @@ test.describe('Work Order Reception System', () => {
     const workOrdersPage = new WorkOrdersPage(page);
     const createDialog = new WorkOrderCreateDialog(page);
 
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
     await workOrdersPage.clickCreate();
 
     // Click add customer button
@@ -94,7 +97,7 @@ test.describe('Work Order Reception System', () => {
     const workOrdersPage = new WorkOrdersPage(page);
     const createDialog = new WorkOrderCreateDialog(page);
 
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
     await workOrdersPage.clickCreate();
 
     // First, select or create a customer
@@ -133,7 +136,7 @@ test.describe('Work Order Reception System', () => {
     const workOrdersPage = new WorkOrdersPage(page);
     const createDialog = new WorkOrderCreateDialog(page);
 
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
     await workOrdersPage.clickCreate();
 
     // Select existing customer
@@ -161,7 +164,7 @@ test.describe('Work Order Reception System', () => {
 
     // Wait for dialog to close and work order to appear in list
     await page.waitForTimeout(2000);
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
 
     // Check if new work order appears (we can't check exact WO ID as it's generated)
     // Instead, check if data grid has been updated
@@ -174,7 +177,7 @@ test.describe('Work Order Reception System', () => {
     const workOrdersPage = new WorkOrdersPage(page);
     const createDialog = new WorkOrderCreateDialog(page);
 
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
     await workOrdersPage.clickCreate();
 
     // Create customer using quick add
@@ -209,7 +212,7 @@ test.describe('Work Order Reception System', () => {
 
     // Wait and verify
     await page.waitForTimeout(2000);
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
     const gridRows = workOrdersPage.dataGrid.locator('[role="row"]');
     const rowCount = await gridRows.count();
     expect(rowCount).toBeGreaterThan(0);
@@ -240,7 +243,7 @@ test.describe('Work Order Reception System', () => {
   test('should search work orders', async ({ page }) => {
     const workOrdersPage = new WorkOrdersPage(page);
 
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
 
     // Search for existing work order
     if (testData.workOrders.length > 0) {
@@ -257,7 +260,7 @@ test.describe('Work Order Reception System', () => {
   test('should filter work orders by status', async ({ page }) => {
     const workOrdersPage = new WorkOrdersPage(page);
 
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
 
     // Filter by TRIAGE status
     await workOrdersPage.filterByStatus('TRIAGE');
@@ -273,7 +276,7 @@ test.describe('Work Order Reception System', () => {
   test('should filter work orders by priority', async ({ page }) => {
     const workOrdersPage = new WorkOrdersPage(page);
 
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
 
     // Filter by HIGH priority
     await workOrdersPage.filterByPriority('HIGH');
@@ -288,7 +291,7 @@ test.describe('Work Order Reception System', () => {
   test('should navigate to work order detail page', async ({ page }) => {
     const workOrdersPage = new WorkOrdersPage(page);
 
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
 
     // Click on a work order row
     if (testData.workOrders.length > 0) {
@@ -310,7 +313,7 @@ test.describe('Work Order Reception System', () => {
     const workOrdersPage = new WorkOrdersPage(page);
     const createDialog = new WorkOrderCreateDialog(page);
 
-    await workOrdersPage.goto();
+    await workOrdersPage.goto(baseURL);
     await workOrdersPage.clickCreate();
 
     // Try to submit without filling required fields

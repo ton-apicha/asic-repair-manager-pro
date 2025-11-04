@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed - 2025-11-04
+- **Authentication Persistence**: แก้ไขปัญหาการจำสถานะ login หลัง refresh page
+  - เพิ่ม automatic token refresh เมื่อ token หมดอายุใน AuthContext
+  - ปรับปรุง error handling ใน authentication initialization
+  - ปรับ response interceptor ให้ไม่ redirect ไป login โดยตรง แต่ให้ AuthContext จัดการแทน
+  - แก้ไข DeviceController quickCreateDevice เพื่อ generate serialNumber อัตโนมัติเมื่อไม่ได้ระบุ
+  - ปรับปรุง E2E tests:
+    - แก้ไข baseURL configuration ใน Playwright config
+    - ปรับ Page Objects ให้รองรับ baseURL parameter
+    - แก้ไข LoginPage locator เพื่อหลีกเลี่ยง strict mode violation
+    - ปรับปรุง DashboardPage.isLoggedIn() เพื่อตรวจสอบหลาย indicators
+    - Authentication tests: 7/7 passed ✅
+
 ### Added - 2025-01-30
 - Work Order Detail Page - Phase 2 (Complete)
   - Work Order Detail Page with complete information display

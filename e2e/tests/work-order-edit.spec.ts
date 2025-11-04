@@ -147,7 +147,8 @@ test.describe('Edit Work Order', () => {
 
     // Logout admin and login as regular user
     const loginPage = new LoginPage(page);
-    await page.goto('/');
+    const baseURL = (await page.context().options().baseURL) || 'http://localhost';
+    await page.goto(baseURL);
     await page.evaluate(() => {
       localStorage.clear();
       sessionStorage.clear();

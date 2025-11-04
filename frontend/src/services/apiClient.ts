@@ -66,9 +66,16 @@ apiClient.interceptors.response.use(
         // Try to refresh token
         const refreshToken = localStorage.getItem('refreshToken')
         if (refreshToken) {
-          const response = await axios.post('/api/v1/auth/refresh', {
-            refreshToken,
-          })
+          // Use direct axios call to avoid circular interceptor
+          const response = await axios.post(
+            `${import.meta.env.VITE_API_URL || '/api/v1'}/auth/refresh`,
+            { refreshToken },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          )
 
           const { accessToken, refreshToken: newRefreshToken } = response.data.data
 
@@ -82,10 +89,10 @@ apiClient.interceptors.response.use(
         }
       } catch (refreshError) {
         logger.error('Token refresh failed:', refreshError)
-        // Clear tokens and redirect to login
+        // Clear tokens but don't redirect here
+        // Let AuthContext handle the redirect through ProtectedRoute
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
-        window.location.href = '/login'
         return Promise.reject(refreshError)
       }
     }

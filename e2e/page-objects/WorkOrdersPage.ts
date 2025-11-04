@@ -26,8 +26,9 @@ export class WorkOrdersPage {
   /**
    * Navigate to work orders page
    */
-  async goto(): Promise<void> {
-    await this.page.goto('/work-orders');
+  async goto(baseURL?: string): Promise<void> {
+    const url = baseURL || 'http://localhost';
+    await this.page.goto(`${url}/work-orders`);
     await this.page.waitForLoadState('networkidle');
   }
 

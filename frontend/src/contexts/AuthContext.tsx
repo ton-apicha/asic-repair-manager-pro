@@ -137,9 +137,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const token = localStorage.getItem('accessToken')
         if (token) {
           // Verify token and get user data - ตรวจสอบ token และดึงข้อมูลผู้ใช้
-          const user = await authService.getProfile()
-          dispatch({ type: 'AUTH_SUCCESS', payload: user })
+          try {
+            const user = await authService.getProfile()
+            dispatch({ type: 'AUTH_SUCCESS', payload: user })
+          } catch (profileError: any) {
+            // ถ้า getProfile fail อาจเป็นเพราะ token หมดอายุ ลอง refresh token
+            const refreshToken = localStorage.getItem('refreshToken')
+            if (refreshToken && profileError?.response?.status === 401) {
+              try {
+                // Try to refresh token
+                const refreshResponse = await authService.refreshToken(refreshToken)
+                localStorage.setItem('accessToken', refreshResponse.accessToken)
+                localStorage.setItem('refreshToken', refreshResponse.refreshToken)
+                
+                // Retry getProfile with new token
+                const user = await authService.getProfile()
+                dispatch({ type: 'AUTH_SUCCESS', payload: user })
+              } catch (refreshError) {
+                // Refresh failed, clear tokens and logout
+                logger.error('Token refresh failed during init:', refreshError)
+                localStorage.removeItem('accessToken')
+                localStorage.removeItem('refreshToken')
+                dispatch({ type: 'AUTH_LOGOUT' })
+              }
+            } else {
+              // No refresh token or other error, clear and logout
+              logger.error('Auth initialization failed:', profileError)
+              localStorage.removeItem('accessToken')
+              localStorage.removeItem('refreshToken')
+              dispatch({ type: 'AUTH_LOGOUT' })
+            }
+          }
         } else {
+          // No token, set loading to false
           dispatch({ type: 'AUTH_LOGOUT' })
         }
       } catch (error) {

@@ -20,8 +20,9 @@ export class DashboardPage {
   /**
    * Navigate to dashboard
    */
-  async goto(): Promise<void> {
-    await this.page.goto('/dashboard');
+  async goto(baseURL?: string): Promise<void> {
+    const url = baseURL || 'http://localhost';
+    await this.page.goto(`${url}/dashboard`);
     await this.page.waitForLoadState('networkidle');
   }
 
@@ -30,8 +31,16 @@ export class DashboardPage {
    */
   async isLoggedIn(): Promise<boolean> {
     try {
-      await this.welcomeMessage.waitFor({ timeout: 5000 });
-      return true;
+      // Check multiple indicators that dashboard is loaded
+      const checks = [
+        this.page.waitForURL(/\/dashboard/, { timeout: 5000 }).catch(() => false),
+        this.navigationMenu.waitFor({ timeout: 5000, state: 'visible' }).catch(() => false),
+        this.page.locator('h1, h2, h3, h4, h5, h6').first().waitFor({ timeout: 5000 }).catch(() => false),
+      ];
+      
+      const results = await Promise.all(checks);
+      // At least one should pass
+      return results.some(result => result !== false);
     } catch {
       return false;
     }

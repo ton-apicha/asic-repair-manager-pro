@@ -127,12 +127,25 @@ export class DeviceController {
     try {
       const { customerId, model, serialNumber, purchaseDate, warrantyExpiry } = req.body;
 
+      // Generate unique serialNumber if not provided
+      // Since serialNumber is required and unique, generate one if missing
+      const finalSerialNumber = serialNumber || `TEMP_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+      // Verify customer exists
+      const customer = await this.db.prisma.customer.findUnique({
+        where: { id: customerId },
+      });
+
+      if (!customer) {
+        throw new CustomError('Customer not found', 404);
+      }
+
       // Create device with minimal data - สร้างอุปกรณ์ด้วยข้อมูลขั้นต่ำ
       const device = await this.db.prisma.device.create({
         data: {
           customerId,
           model,
-          serialNumber: serialNumber || null,
+          serialNumber: finalSerialNumber,
           purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
           warrantyEndDate: warrantyExpiry ? new Date(warrantyExpiry) : null,
           status: 'ACTIVE',  // Auto-set status to ACTIVE
